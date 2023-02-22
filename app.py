@@ -6,9 +6,9 @@ from flask import Flask, jsonify, request
 from datetime import datetime
 
 # create your API token, and set it up in Postman collection as part of the Body section
-API_TOKEN = "ruighiurg475"
+API_TOKEN = ""
 # you can get API keys for free here - https://www.weatherapi.com/
-RSA_API_KEY = "54a942eab1904e05848160017232102"
+RSA_API_KEY = ""
 
 app = Flask(__name__)
 
