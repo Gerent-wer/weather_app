@@ -82,6 +82,10 @@ def weather_endpoint():
     if token != API_TOKEN:
         raise InvalidUsage("wrong API token", status_code=403)
 
+    name = ""
+    if json_data.get("requester_name"):
+        name = json_data.get("requester_name")   
+        
     city = ""
     if json_data.get("q"):
         city = json_data.get("q")
@@ -101,6 +105,7 @@ def weather_endpoint():
         "event_start_datetime": start_dt.isoformat(),
         "event_finished_datetime": end_dt.isoformat(),
         "event_duration": str(end_dt - start_dt),
+        "requester_name": name,
         "weather": weather,
     }
 
