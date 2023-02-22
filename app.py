@@ -3,25 +3,41 @@ import json
 
 import requests
 from flask import Flask, jsonify, request
+from datetime import datetime
 
 # create your API token, and set it up in Postman collection as part of the Body section
-API_TOKEN = ""
+API_TOKEN = "ruighiurg475"
 # you can get API keys for free here - https://www.weatherapi.com/
-RSA_API_KEY = ""
+RSA_API_KEY = "54a942eab1904e05848160017232102"
 
 app = Flask(__name__)
 
-def generate_forecast(city: str, aqi: str, lang: str):
+def generate_forecast(location: str, data: str, aqi: str, lang: str):
     url_base_url = "http://api.weatherapi.com"
     url_api = "v1"
-    url_endpoint = "current.json"
+    url_endpoint = ""
     url_key = f"?key={RSA_API_KEY}"
-    url_city = ""
+    url_location = ""
+    url_data = ""
     url_aqi = ""
     url_lang = ""
+    date_datatime = datetime.strptime(data, "%Y-%m-%d") # перетворюємо строку в datatime
+    now = datetime.now()
 
-    if city:
-        url_city = f"&q={city}"
+    # обираэмо потрібний нам метод API в залежності від дати
+    if date_datatime.date() == now.date():
+        url_endpoint = "current.json"
+    elif date_datatime.date() < now.date():
+        url_endpoint = "history.json"
+    else:
+        url_endpoint = "future.json"
+    
+    # Записуємо отримані параметри, якщо вони є
+    if location:
+        url_location = f"&q={location}"
+
+    if data:
+        url_data = f"&dt={data}"
 
     if aqi:
         url_aqi = f"&aqi={aqi}"
@@ -29,7 +45,7 @@ def generate_forecast(city: str, aqi: str, lang: str):
     if lang:
         url_lang = f"&lang={lang}"
 
-    url = f"{url_base_url}/{url_api}/{url_endpoint}{url_key}{url_city}{url_aqi}{url_lang}"
+    url = f"{url_base_url}/{url_api}/{url_endpoint}{url_key}{url_location}{url_data}{url_aqi}{url_lang}"
 
     payload = {}
     headers = {}
@@ -86,9 +102,13 @@ def weather_endpoint():
     if json_data.get("requester_name"):
         name = json_data.get("requester_name")   
         
-    city = ""
-    if json_data.get("q"):
-        city = json_data.get("q")
+    location = ""
+    if json_data.get("location"):
+        location = json_data.get("location")
+        
+    data = ""
+    if json_data.get("data"):
+        data = json_data.get("data")
 
     aqi = ""
     if json_data.get("aqi"):
@@ -98,7 +118,7 @@ def weather_endpoint():
     if json_data.get("lang"):
         lang = json_data.get("lang")
 
-    weather = generate_forecast(city,aqi,lang)
+    weather = generate_forecast(location,data,aqi,lang)
     end_dt = dt.datetime.now()
 
     result = {
