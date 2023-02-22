@@ -6,25 +6,33 @@ from flask import Flask, jsonify, request
 
 # create your API token, and set it up in Postman collection as part of the Body section
 API_TOKEN = ""
-# you can get API keys for free here - https://api-docs.pgamerx.com/
+# you can get API keys for free here - https://www.weatherapi.com/
 RSA_API_KEY = ""
 
 app = Flask(__name__)
 
+def generate_forecast(city: str, aqi: str, lang: str):
+    url_base_url = "http://api.weatherapi.com"
+    url_api = "v1"
+    url_endpoint = "current.json"
+    url_key = f"?key={RSA_API_KEY}"
+    url_city = ""
+    url_aqi = ""
+    url_lang = ""
 
-def generate_joke(exclude: str):
-    url_base_url = "https://v6.rsa-api.xyz/"
-    url_api = "joke"
-    url_endpoint = "random"
-    url_exclude = ""
+    if city:
+        url_city = f"&q={city}"
 
-    if exclude:
-        url_exclude = f"?exclude={exclude}"
+    if aqi:
+        url_aqi = f"&aqi={aqi}"
 
-    url = f"{url_base_url}/{url_api}/{url_endpoint}{url_exclude}"
+    if lang:
+        url_lang = f"&lang={lang}"
+
+    url = f"{url_base_url}/{url_api}/{url_endpoint}{url_key}{url_city}{url_aqi}{url_lang}"
 
     payload = {}
-    headers = {"Authorization": RSA_API_KEY}
+    headers = {}
 
     response = requests.request("GET", url, headers=headers, data=payload)
     return json.loads(response.text)
@@ -62,7 +70,7 @@ def home_page():
     "/content/api/v1/integration/generate",
     methods=["POST"],
 )
-def joke_endpoint():
+def weather_endpoint():
     start_dt = dt.datetime.now()
     json_data = request.get_json()
 
@@ -74,19 +82,26 @@ def joke_endpoint():
     if token != API_TOKEN:
         raise InvalidUsage("wrong API token", status_code=403)
 
-    exclude = ""
-    if json_data.get("exclude"):
-        exclude = json_data.get("exclude")
+    city = ""
+    if json_data.get("q"):
+        city = json_data.get("q")
 
-    joke = generate_joke(exclude)
+    aqi = ""
+    if json_data.get("aqi"):
+        aqi = json_data.get("aqi")
 
+    lang = ""
+    if json_data.get("lang"):
+        lang = json_data.get("lang")
+
+    weather = generate_forecast(city,aqi,lang)
     end_dt = dt.datetime.now()
 
     result = {
         "event_start_datetime": start_dt.isoformat(),
         "event_finished_datetime": end_dt.isoformat(),
         "event_duration": str(end_dt - start_dt),
-        "joke": joke,
+        "weather": weather,
     }
 
     return result
